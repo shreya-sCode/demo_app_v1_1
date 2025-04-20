@@ -3,12 +3,11 @@ import 'package:equatable/equatable.dart';
 abstract class RegisterEvent extends Equatable {}
 
 class RegSubmitted extends RegisterEvent {
-  final String email;
-  final String password;
-  final String confirmPassword;
+  final String emailValue;
+  final String passwordValue;
 
-  RegSubmitted({required this.email, required this.password, required this.confirmPassword});
+  RegSubmitted({required this.emailValue, required this.passwordValue});
 
   @override
-  List<Object?> get props => [email, password, confirmPassword];
+  List<Object?> get props => [emailValue, passwordValue];
 }

@@ -1,6 +1,9 @@
+import 'package:demo_app_v1_1/bloc/register/register_bloc.dart';
+import 'package:demo_app_v1_1/bloc/register/register_event.dart';
 import 'package:demo_app_v1_1/screens/home.dart';
 import 'package:demo_app_v1_1/screens/login.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -116,6 +119,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
+  void _triggerRegisterEvent() {
+    context.read<RegisterBloc>().add(
+      RegSubmitted(
+        emailValue: _emailController.text,
+        passwordValue: _passwordController.text,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -180,7 +192,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: ElevatedButton(
-                  onPressed: _handleSignup,
+                  onPressed: () {
+                    if (_signupFormKey.currentState!.validate()) {
+                      _triggerRegisterEvent();
+                    }
+                  },
                   child: Text('Register'),
                 ),
               ),
