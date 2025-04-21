@@ -1,6 +1,8 @@
 import 'package:demo_app_v1_1/bloc/posts/post_bloc.dart';
+import 'package:demo_app_v1_1/bloc/register/register_bloc.dart';
+import 'package:demo_app_v1_1/routes.dart';
 // import 'package:demo_app_v1_1/screens/home.dart';
-import 'package:demo_app_v1_1/screens/login.dart';
+// import 'package:demo_app_v1_1/screens/login.dart';
 // import 'package:demo_app_v1_1/screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -17,9 +19,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: BlocProvider(create: (context) => PostBloc(), child: LoginScreen()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => RegisterBloc()),
+        BlocProvider(create: (context) => PostBloc()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        initialRoute: AppRoutes.login,
+        routes: AppRoutes.routes,
+        // home: LoginScreen(),
+      ),
     );
   }
 }

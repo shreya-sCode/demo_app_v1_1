@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:demo_app_v1_1/routes.dart';
+import 'package:demo_app_v1_1/screens/home.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:demo_app_v1_1/bloc/register/register_bloc.dart';
+import 'package:demo_app_v1_1/bloc/register/register_event.dart';
+import 'package:demo_app_v1_1/screens/login.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegistrationForm extends StatefulWidget {
+  const RegistrationForm({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegistrationForm> createState() => _RegistrationFormState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _loginFormKey = GlobalKey<FormState>();
+class _RegistrationFormState extends State<RegistrationForm> {
+  final _signupFormKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
@@ -19,11 +25,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String? _emailError;
   String? _passwordError;
+  String? _confirmPasswordError;
 
   @override
   void dispose() {
     _emailFocus.dispose();
     _passwordFocus.dispose();
+    _confirmPasswordFocus.dispose();
     super.dispose();
   }
 
@@ -36,6 +44,14 @@ class _LoginScreenState extends State<LoginScreen> {
   void _validatePassword() {
     setState(() {
       _passwordError = validatePassword(_passwordController.text);
+    });
+  }
+
+  void _validateConfirmPassword() {
+    setState(() {
+      _confirmPasswordError = validateConfirmPassword(
+        _confirmPasswordController.text,
+      );
     });
   }
 
@@ -84,22 +100,44 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
-  void _handleLogin() {
-    if (_loginFormKey.currentState!.validate()) {
-      Navigator.pushReplacementNamed(context, AppRoutes.home);
+  String? validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please confirm your password';
     }
+    if (value != _passwordController.text) {
+      return 'Passwords do not match';
+    }
+    return null;
+  }
+
+  void _handleSignup() {
+    if (_signupFormKey.currentState!.validate()) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      );
+    }
+  }
+
+  void _triggerRegisterEvent() {
+    context.read<RegisterBloc>().add(
+      RegSubmitted(
+        emailValue: _emailController.text,
+        passwordValue: _passwordController.text,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(30.0),
-        child: Column(
-          children: [
-            Form(
-              key: _loginFormKey,
+      appBar: AppBar(title: Text('Sign Up')),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(30.0),
+            child: Form(
+              key: _signupFormKey,
               child: Column(
                 children: [
                   //Email
@@ -138,81 +176,81 @@ class _LoginScreenState extends State<LoginScreen> {
                     onChanged: (value) => _validatePassword(),
                   ),
 
-                  //Login Button with padding
+                  //Confirm Password
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    focusNode: _confirmPasswordFocus,
+                    decoration: InputDecoration(
+                      labelText: 'Confirm Password',
+                      errorText: _confirmPasswordError,
+                    ),
+                    obscureText: true,
+                    onFieldSubmitted: (_) {
+                      _handleSignup();
+                    },
+                    validator: validateConfirmPassword,
+                    onChanged: (value) => _validateConfirmPassword(),
+                  ),
+
+                  //BTN-signup button with padding
                   Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: ElevatedButton(
-                      onPressed: _handleLogin,
-                      child: Text('Login'),
+                      onPressed: () {
+                        if (_signupFormKey.currentState!.validate()) {
+                          _triggerRegisterEvent();
+                        }
+                      },
+                      child: Text('Register'),
                     ),
                   ),
 
-                  //'Don't have an account' text
+                  //Login Text
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Don\'t have an account?'),
+                      Text('Already have an account?'),
                       TextButton(
                         onPressed: () {
-                          Navigator.pushNamed(context, AppRoutes.signup);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LoginScreen(),
+                            ),
+                          );
                         },
                         child: Text(
-                          'Register here',
+                          'Login here',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
                   ),
+
+                  //OR
+                  Text('OR'),
+
+                  SizedBox(height: 20),
+
+                  TextButton(
+                    child: Text(
+                      'Login with Google / Phone',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginScreen()),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
-
-            Spacer(),
-
-            //OR
-            Text('OR'),
-
-            Spacer(),
-
-            //Continue with Google & Phone Column
-            Column(
-              children: [
-                ElevatedButton(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.network(
-                        "https://img.icons8.com/plasticine/100/google-logo.png",
-                        height: 30,
-                      ),
-                      SizedBox(width: 10),
-                      Text('Continue with Google'),
-                    ],
-                  ),
-                  onPressed: () {},
-                ),
-
-                SizedBox(height: 30),
-
-                ElevatedButton(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.network(
-                        "https://img.icons8.com/dusk/64/phone.png",
-                        height: 30,
-                      ),
-                      SizedBox(width: 10),
-                      Text('Continue with Phone'),
-                    ],
-                  ),
-                  onPressed: () {},
-                ),
-              ],
-            ),
-
-            Spacer(),
-          ],
+          ),
         ),
       ),
     );
